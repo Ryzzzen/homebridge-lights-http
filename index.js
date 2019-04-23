@@ -7,14 +7,14 @@ module.exports = function(homebridge) {
   Service = homebridge.hap.Service;
   Characteristic = homebridge.hap.Characteristic;
 
-  homebridge.registerAccessory('homebridge-lights-http', 'LightPlatform', HTTPLightPlatform);
+  homebridge.registerAccessory('homebridge-lights-http', 'HTTPLightPlatform', HTTPLightPlatform);
 }
 
 // Platform constructor
 // config may be null
 // api may be null if launched from old homebridge version
 function HTTPLightPlatform(log, config, api) {
-  log("LightPlatform Init");
+  log("HTTP LightPlatform Init");
 
   this.accessories = [];
   this.log = log;
@@ -34,8 +34,6 @@ function HTTPLightPlatform(log, config, api) {
 
   if (config.colors)
     this.colors = { hue: 0, saturation: 0 };
-
-  console.dir(this);
 }
 
 HTTPLightPlatform.identify = function(callback) {
