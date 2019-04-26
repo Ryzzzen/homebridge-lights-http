@@ -24,8 +24,6 @@ function HTTPLightPlatform(log, config, api) {
 
   this.ip = config.ip;
 
-  this.cache = {};
-
   if (config.brightness)
     this.brightness = config.brightness;
 
@@ -56,8 +54,6 @@ var api = {
     }.bind(this));
   },
   setPowerState: function(state, callback) {
-      this.cache.state = state;
-
       request(`http://${this.ip}/api/set/state/${state ? '1' : '0'}`, function(err, res, body) {
         if (err && err.code !== 'ECONNRESET') {
           this.log('setPowerState() failed: %s', err.message);
@@ -95,8 +91,6 @@ var api = {
           return;
       }
 
-      this.cache.brightness = level;
-
       request(`http://${this.ip}/api/set/brightness/${level}`, function(err, res, body) {
         if (err && err.code !== 'ECONNRESET') {
           this.log('setBrightness() failed: %s', err);
@@ -118,48 +112,43 @@ HTTPLightPlatform.prototype.getServices = function() {
     .setCharacteristic(Characteristic.Model, 'homebridge-lights-http')
     .setCharacteristic(Characteristic.SerialNumber, Date.now());
 
-  switch (this.service) {
-    case 'Light':
-        this.log('Creating Lightbulb');
-        var lightbulbService = new Service.Lightbulb(this.name);
+    this.log('Creating Lightbulb');
+    var lightbulbService = new Service.Lightbulb(this.name);
 
-        if (this.status) {
-            lightbulbService
-                .getCharacteristic(Characteristic.On)
-                .on('get', api.getPowerState.bind(this))
-                .on('set', api.setPowerState.bind(this));
-        } else {
-            lightbulbService
-                .getCharacteristic(Characteristic.On)
-                .on('set', api.setPowerState.bind(this));
-        }
-
-        // Handle brightness
-        if (this.brightness) {
-            this.log('... Adding Brightness');
-            lightbulbService
-                .addCharacteristic(new Characteristic.Brightness())
-                .on('get', api.getBrightness.bind(this))
-                .on('set', api.setBrightness.bind(this));
-        }
-
-        if (this.color) {
-            this.log('... Adding colors');
-            lightbulbService
-                .addCharacteristic(new Characteristic.Hue())
-                .on('get', api.getHue.bind(this))
-                .on('set', api.setHue.bind(this));
-
-            lightbulbService
-                .addCharacteristic(new Characteristic.Saturation())
-                .on('get', api.getSaturation.bind(this))
-                .on('set', api.setSaturation.bind(this));
-        }
-
-        return [informationService, lightbulbService];
-    default:
-      return [informationService];
+    if (this.status) {
+        lightbulbService
+            .getCharacteristic(Characteristic.On)
+            .on('get', api.getPowerState.bind(this))
+            .on('set', api.setPowerState.bind(this));
+    } else {
+        lightbulbService
+            .getCharacteristic(Characteristic.On)
+            .on('set', api.setPowerState.bind(this));
     }
+
+    // Handle brightness
+    if (this.brightness) {
+        this.log('... Adding Brightness');
+        lightbulbService
+            .addCharacteristic(new Characteristic.Brightness())
+            .on('get', api.getBrightness.bind(this))
+            .on('set', api.setBrightness.bind(this));
+    }
+
+    if (this.color) {
+        this.log('... Adding colors');
+        lightbulbService
+            .addCharacteristic(new Characteristic.Hue())
+            .on('get', api.getHue.bind(this))
+            .on('set', api.setHue.bind(this));
+
+        lightbulbService
+            .addCharacteristic(new Characteristic.Saturation())
+            .on('get', api.getSaturation.bind(this))
+            .on('set', api.setSaturation.bind(this));
+    }
+
+    return [informationService, lightbulbService];
 };
 
 HTTPLightPlatform.prototype.configureAccessory = function(accessory) {
