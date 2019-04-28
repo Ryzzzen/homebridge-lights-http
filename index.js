@@ -61,7 +61,7 @@ class LightbulbAccessory {
   }
 
   setOnCharacteristicHandler (value, callback) {
-    request(`http://${this.ip}/api/set/state/${value ? '1' : '0'}`, (err, res, body) => {
+    request(`http://${this.config.ip}/api/set/state/${value ? '1' : '0'}`, (err, res, body) => {
       if (err && err.code !== 'ECONNRESET') {
         this.log('setPowerState() failed: %s', err.message);
         callback(err);
@@ -76,7 +76,7 @@ class LightbulbAccessory {
   getOnCharacteristicHandler (callback) {
     if (this.context.on) return callback(null, this.context.on);
 
-    request(`http://${this.ip}/api/get/state`, (err, res, body) => {
+    request(`http://${this.config.ip}/api/get/state`, (err, res, body) => {
       if (err && err.code !== 'ECONNRESET') {
         this.log('getPowerState() failed: %s', err.message);
         callback(err);
@@ -95,13 +95,13 @@ class LightbulbAccessory {
         return callback(new Error("No 'brightness' defined in configuration"));
     }
 
-    request(`http://${this.ip}/api/set/brightness/${level}`, (err, res, body) => {
+    request(`http://${this.config.ip}/api/set/brightness/${value}`, (err, res, body) => {
       if (err && err.code !== 'ECONNRESET') {
         this.log('setBrightness() failed: %s', err);
         callback(err);
       }
       else {
-        this.log('setBrightness() successfully set to %s %', this.context.brightness = level);
+        this.log('setBrightness() successfully set to %s %', this.context.brightness = value);
         callback();
       }
     });
@@ -116,7 +116,7 @@ class LightbulbAccessory {
 
     if (this.context.brightness) return callback(null, this.context.brightness);
 
-    request(`http://${this.ip}/api/get/brightness`, (err, res, body) => {
+    request(`http://${this.config.ip}/api/get/brightness`, (err, res, body) => {
       if (err && err.code !== 'ECONNRESET') {
         this.log('getBrightness() failed: %s', err.message);
         callback(err);
