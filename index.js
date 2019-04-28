@@ -16,6 +16,7 @@ class LightbulbAccessory {
     this.config = config;
 
     this.service = new Service.Lightbulb(this.config.name);
+    this.context = {};
   }
 
   getServices () {
@@ -35,7 +36,7 @@ class LightbulbAccessory {
 
       if (this.config.hasBrightness) {
           this.log('... Adding Brightness');
-          lightbulbService
+          this.service
               .addCharacteristic(new Characteristic.Brightness())
               .on('get', this.getBrightnessCharacteristicHandler.bind(this))
               .on('set', this.setBrightnessCharacteristicHandler.bind(this));
@@ -100,7 +101,7 @@ class LightbulbAccessory {
         callback(err);
       }
       else {
-        this.log('setBrightness() successfully set to %s %', level);
+        this.log('setBrightness() successfully set to %s %', this.context.brightness = level);
         callback();
       }
     });
@@ -112,6 +113,8 @@ class LightbulbAccessory {
         callback(new Error("No 'brightness' defined in configuration"));
         return;
     }
+
+    if (this.context.brightness) return callback(null, this.context.brightness);
 
     request(`http://${this.ip}/api/get/brightness`, (err, res, body) => {
       if (err && err.code !== 'ECONNRESET') {
